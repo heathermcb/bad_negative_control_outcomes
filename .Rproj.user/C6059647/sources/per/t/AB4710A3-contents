@@ -1,0 +1,319 @@
+# Create 1000 runs of a 1000-person study where a negative control outcome is
+# correctly applied.
+
+# Libraries
+pacman::p_load(here, tidyverse)
+
+
+# Helper ------------------------------------------------------------------
+
+run_simulation <- function(case_dat) {
+  # model primary outcome of interest
+  m1 <- lm(y ~ a, dat = case_dat)
+  m2 <- lm(n ~ a, dat = case_dat)
+  
+  a_y_beta = m1$coefficients[2]
+  a_n_beta = m2$coefficients[2]
+  a_y_confint_lower = confint(m1)[2, 1]
+  a_y_confint_upper = confint(m1)[2, 2]
+  a_n_confint_lower = confint(m2)[2, 1]
+  a_n_confint_upper = confint(m2)[2, 2]
+  
+  df_1 <- data.frame(
+    beta = a_y_beta,
+    confint_lower = a_y_confint_lower,
+    confint_upper = a_y_confint_upper,
+    type = 'primary_assoc'
+  )
+  
+  df_2 <- data.frame(
+    beta = a_n_beta,
+    confint_lower = a_n_confint_lower,
+    confint_upper = a_n_confint_upper,
+    type = 'neg_control'
+  )
+  
+  rownames(df_1) = NULL
+  rownames(df_2) = NULL
+  
+  df <- bind_rows(df_1, df_2)
+  
+  return(df)
+}
+
+# Begin with correct case -------------------------------------------------
+
+create_correct_case_data <- function() {
+  u <- rnorm(n = 100, mean = 1, sd = 10)
+  l <- rnorm(n = 100, mean = 1, sd = 10)
+  a <- rnorm(n = 100, mean = 1, sd = 10) + u + l
+  y <- rnorm(n = 100, mean = 1, sd = 10) + a + u + l
+  n <- rnorm(n = 100, mean = 1, sd = 10) + u + l
+  
+  dat <- data.frame(u = u,
+                    l = l,
+                    a = a,
+                    y = y,
+                    n = n)
+  return(dat)
+}
+
+
+
+run_simulation_correct_model <- function(case_data){
+  # model primary outcome of interest
+  m1 <- lm(y ~ a + u + l, dat = case_dat)
+  m2 <- lm(n ~ a + u + l, dat = case_dat)
+  
+  a_y_beta = m1$coefficients[2]
+  a_n_beta = m2$coefficients[2]
+  a_y_confint_lower = confint(m1)[2, 1]
+  a_y_confint_upper = confint(m1)[2, 2]
+  a_n_confint_lower = confint(m2)[2, 1]
+  a_n_confint_upper = confint(m2)[2, 2]
+  
+  df_1 <- data.frame(
+    beta = a_y_beta,
+    confint_lower = a_y_confint_lower,
+    confint_upper = a_y_confint_upper,
+    type = 'primary_assoc'
+  )
+  
+  df_2 <- data.frame(
+    beta = a_n_beta,
+    confint_lower = a_n_confint_lower,
+    confint_upper = a_n_confint_upper,
+    type = 'neg_control'
+  )
+  
+  rownames(df_1) = NULL
+  rownames(df_2) = NULL
+  
+  df <- bind_rows(df_1, df_2)
+  
+  return(df)
+}
+
+
+results <- data.frame()
+for (i in 1:100) {
+  case_dat <- create_correct_case_data()
+  models <- run_simulation_correct_model(case_dat)
+  results <- bind_rows(results, models)
+  results$model = 'correct_case'
+}
+
+write_rds(results, here("data", "correct_case_coefs_confints.RDS"))
+
+
+# Missing confounder ------------------------------------------------------
+
+create_missing_confounder_data <- function() {
+  u <- rnorm(n = 100, mean = 1, sd = 10)
+  a <- rnorm(n = 100, mean = 1, sd = 10) + u
+  y <- rnorm(n = 100, mean = 1, sd = 10) + a + u
+  n <- rnorm(n = 100, mean = 1, sd = 10)
+  
+  dat <- data.frame(u = u,
+                    a = a,
+                    y = y,
+                    n = n)
+  return(dat)
+}
+
+results <- data.frame()
+for (i in 1:100) {
+  case_dat <- create_missing_confounder_data()
+  models <- run_simulation(case_dat)
+  results <- bind_rows(results, models)
+  results$model = 'missing confounder'
+  
+}
+
+write_rds(results,
+          here("data", "missing_confounder_coefs_confints.RDS"))
+
+
+# Scenario 2: incorrectly modeled observed confounder ---------------------
+
+create_inadequately_modelled_confounder_data <- function() {
+  L <- rnorm(n = 100, mean = 1, sd = 10)
+  a <- rnorm(n = 100, mean = 1, sd = 10) + L
+  y <- rnorm(n = 100, mean = 1, sd = 10) + a + 0.0003* (L ^ 3)
+  n <- rnorm(n = 100, mean = 1, sd = 10) + L
+  
+  dat <- data.frame(L = L,
+                    a = a,
+                    y = y,
+                    n = n)
+  return(dat)
+}
+
+
+run_simulation_bad_model <- function(case_data){
+  # model primary outcome of interest
+  m1 <- lm(y ~ a + L, dat = case_dat)
+  m2 <- lm(n ~ a + L, dat = case_dat)
+  
+  a_y_beta = m1$coefficients[2]
+  a_n_beta = m2$coefficients[2]
+  a_y_confint_lower = confint(m1)[2, 1]
+  a_y_confint_upper = confint(m1)[2, 2]
+  a_n_confint_lower = confint(m2)[2, 1]
+  a_n_confint_upper = confint(m2)[2, 2]
+  
+  df_1 <- data.frame(
+    beta = a_y_beta,
+    confint_lower = a_y_confint_lower,
+    confint_upper = a_y_confint_upper,
+    type = 'primary_assoc'
+  )
+  
+  df_2 <- data.frame(
+    beta = a_n_beta,
+    confint_lower = a_n_confint_lower,
+    confint_upper = a_n_confint_upper,
+    type = 'neg_control'
+  )
+  
+  rownames(df_1) = NULL
+  rownames(df_2) = NULL
+  
+  df <- bind_rows(df_1, df_2)
+  
+  return(df)
+}
+
+results <- data.frame()
+for (i in 1:100) {
+  case_dat <- create_inadequately_modelled_confounder_data()
+  models <- run_simulation_bad_model(case_dat)
+  results <- bind_rows(results, models)
+  results$model = 'unmodelled_confounder'
+  
+}
+
+write_rds(results,
+          here(
+            "data",
+            "inadequately_modelled_confounder_coefs_confints.RDS"
+          ))
+
+
+# Scenario 3: inadequate measurement of observed confounders --------------
+
+create_inadequately_measured_confounder_data <- function() {
+  L <- runif(n = 100, min = 1, max = 3)
+  a <- rnorm(n = 100, mean = 3, sd = 10) + (L < 2)
+  y <- rnorm(n = 100, mean = 7, sd = 10) + a + (L < 2)
+  n <- rnorm(n = 100, mean = 4, sd = 10) + (L < 2)
+  
+  dat <- data.frame(L = L,
+                    a = a,
+                    y = y,
+                    n = n)
+  return(dat)
+}
+
+run_simulation_bad_measurement <- function(case_data){
+  # model primary outcome of interest
+  m1 <- lm(y ~ a + L, dat = case_dat)
+  m2 <- lm(n ~ a + L, dat = case_dat)
+  
+  a_y_beta = m1$coefficients[2]
+  a_n_beta = m2$coefficients[2]
+  a_y_confint_lower = confint(m1)[2, 1]
+  a_y_confint_upper = confint(m1)[2, 2]
+  a_n_confint_lower = confint(m2)[2, 1]
+  a_n_confint_upper = confint(m2)[2, 2]
+  
+  df_1 <- data.frame(
+    beta = a_y_beta,
+    confint_lower = a_y_confint_lower,
+    confint_upper = a_y_confint_upper,
+    type = 'primary_assoc'
+  )
+  
+  df_2 <- data.frame(
+    beta = a_n_beta,
+    confint_lower = a_n_confint_lower,
+    confint_upper = a_n_confint_upper,
+    type = 'neg_control'
+  )
+  
+  rownames(df_1) = NULL
+  rownames(df_2) = NULL
+  
+  df <- bind_rows(df_1, df_2)
+  
+  return(df)
+}
+
+results <- data.frame()
+for (i in 1:100) {
+  case_dat <- create_inadequately_measured_confounder_data()
+  models <- run_simulation_bad_measurement(case_dat)
+  results <- bind_rows(results, models)
+  results$model = 'inadequately_measured_confounder'
+}
+
+write_rds(results,
+          here(
+            "data",
+            "inadequately_measured_confounder_coefs_confints.RDS"
+          ))
+
+
+# weak negative control ---------------------------------------------------
+
+create_weak_negative_control_data <- function() {
+  u <- rnorm(n = 100, mean = 1, sd = 10)
+  a <- rnorm(n = 100, mean = 1, sd = 10) + u
+  y <- rnorm(n = 100, mean = 1, sd = 10) + a + u
+  n <- rnorm(n = 100, mean = 1, sd = 10) + 0.001 * u
+  
+  dat <- data.frame(u = u,
+                    a = a,
+                    y = y,
+                    n = n)
+  return(dat)
+}
+
+results <- data.frame()
+for (i in 1:100) {
+  case_dat <- create_weak_negative_control_data()
+  models <- run_simulation(case_dat)
+  results <- bind_rows(results, models)
+  results$model = 'weak_negative_control'
+}
+
+write_rds(results,
+          here("data", "weak_negative_control_coefs_confints.RDS"))
+
+
+# Bonus simulation --------------------------------------------------------
+
+
+create_neg_assoc_control_data <- function() {
+  u <- rnorm(n = 100, mean = 1, sd = 10)
+  a <- rnorm(n = 100, mean = 1, sd = 10) + u
+  y <- rnorm(n = 100, mean = 1, sd = 10) +  a + u
+  n <- rnorm(n = 100, mean = 1, sd = 10) - u
+  
+  dat <- data.frame(u = u,
+                    a = a,
+                    y = y,
+                    n = n)
+  return(dat)
+}
+
+results <- data.frame()
+for (i in 1:100) {
+  case_dat <- create_neg_assoc_control_data()
+  models <- run_simulation(case_dat)
+  results <- bind_rows(results, models)
+  results$model = 'negative_assoc'
+}
+
+
+write_rds(results, here("data", "neg_assoc_coefs_confints.RDS"))

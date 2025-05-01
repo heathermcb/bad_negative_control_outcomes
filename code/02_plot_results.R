@@ -1,0 +1,125 @@
+library(tidyverse)
+library(here)
+library(data.table)
+
+# Read --------------------------------------------------------------------
+ls <- list.files(here("data"), full.names = TRUE)
+files <- lapply(FUN = read_rds, ls)
+o <- rbindlist(files)
+
+# Update factor levels for `model` ---------------------------------------
+o <- o %>%
+  mutate(
+    model = factor(
+      model,
+      levels = c(
+        "correct_case", 
+        "missing confounder", 
+        "inadequately_measured_confounder", 
+        "unmodelled_confounder", 
+        "weak_negative_control", 
+        "negative_assoc"
+      ),
+      labels = c(
+        "1. Correct \nCase", 
+        "2. Missing \nConfounder", 
+        "3. Measurement \nError", 
+        "4. Modelling \nError", 
+        "5. Weak Negative \nControl", 
+        "6. Negative \nAssociation"
+      )
+    ),
+    type = factor(
+      type,
+      levels = c("primary_assoc", "neg_control"),
+      labels = c("Primary Association", "Negative Control")
+    )
+  )
+  
+
+# Plot --------------------------------------------------------------------
+
+o %>%
+  ggplot() + 
+  geom_hline(yintercept = 0, linetype = "dashed", color = "gray") +
+  geom_hline(yintercept = 1, linetype = 'dashed', color = 'darkred') +
+  facet_grid(~model) +
+  geom_boxplot(aes(y = beta, color = type), size = 0.5) +  # Adjust the size for thicker boxplot lines
+  theme_minimal(17) +
+  theme(
+    axis.text.x = element_blank(),  # Remove x-axis ticks
+    axis.ticks.x = element_blank(), # Remove x-axis tick marks
+    panel.grid.major.x = element_blank(), # Remove vertical grid lines
+    panel.grid.minor.x = element_blank(),
+    panel.border = element_rect(color = "black", fill = NA, linewidth = 0.5) # Add box around facets
+  ) +
+  scale_y_continuous(breaks = seq(-3, 3, by = 0.5)) +  # Set y-axis breaks every 0.5
+  scale_color_manual(
+    values = c("Primary Association" = "#1f78b4", "Negative Control" = "#33a02c") # Custom cool colors
+  ) +
+  labs(
+    x = NULL,  # Remove x-axis label
+    y = "Simulation effect estimate", 
+    color = ""
+  )
+
+# o %>%
+#   ggplot() + 
+#   geom_hline(yintercept = 0, linetype = "dashed", color = "gray") +
+#   geom_hline(yintercept = 1, linetype = 'dashed', color = 'darkred') +
+#   facet_grid(~model) +
+#   geom_boxplot(aes(y = beta, color = type)) + 
+#   theme_minimal(17) +
+#   theme(
+#     axis.text.x = element_blank(),  # Remove x-axis ticks
+#     axis.ticks.x = element_blank(), # Remove x-axis tick marks
+#     panel.grid.major.x = element_blank(), # Remove vertical grid lines
+#     panel.grid.minor.x = element_blank(),
+#     panel.border = element_rect(color = "black", fill = NA, linewidth = 0.5) # Add box around facets
+#   ) +
+#   scale_y_continuous(breaks = seq(-3, 3, by = 0.5)) +  # Set y-axis breaks every 0.5
+#   scale_color_manual(
+#     values = c("Primary Association" = "#1f78b4", "Negative Control" = "#33a02c") # Custom cool colors
+#   ) +
+#   labs(
+#     x = NULL,  # Remove x-axis label
+#     y = "Simulation effect estimate", 
+#     color = ""
+#   )
+
+# o %>%
+#   ggplot() + 
+#   geom_hline(yintercept = 0, linetype = "dashed", color = "gray") +
+#   geom_hline(yintercept = 1, linetype = 'dashed', color = 'darkred') +
+#   facet_grid(~model) +
+#   geom_boxplot(aes(y = beta, color = type)) + 
+#   theme_minimal(17) +
+#   theme(
+#     axis.text.x = element_blank(),  # Remove x-axis ticks
+#     axis.ticks.x = element_blank(), # Remove x-axis tick marks
+#     panel.grid.major.x = element_blank(), # Remove vertical grid lines
+#     panel.grid.minor.x = element_blank(),
+#     panel.border = element_rect(color = "black", fill = NA, linewidth = 0.5) # Add box around facets
+#   ) +
+#   scale_y_continuous(breaks = seq(-3, 3, by = 0.5)) +  # Set y-axis breaks every 0.5
+#   labs(
+#     x = NULL,  # Remove x-axis label
+#     y = "Simulation effect estimate", 
+#     color = ""
+#   )
+
+ggsave(here("figs", 'beta_boxplot.pdf'), width = 15)
+
+glimpse(o)
+table <- o %>%
+  group_by(model, type) %>%
+  summarize(mean_beta = mean(beta),
+            ci_cov = sum(0 > confint_lower & 0<confint_upper)) %>%
+  mutate(mean_beta = round(mean_beta, digits = 2),
+         ci_cov = round(ci_cov, digits = 2))
+
+
+table <- table%>%
+  pivot_wider(names_from = type, values_from = c(mean_beta, ci_cov))
+
+write_csv(table, here('figs', "beta_table.csv"))

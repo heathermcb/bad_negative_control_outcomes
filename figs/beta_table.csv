@@ -1,0 +1,13 @@
+model,mean_beta_Primary Association,mean_beta_Negative Control,ci_cov_Primary Association,ci_cov_Negative Control
+"1. Correct 
+Case",1.5,0.49,0,1
+"2. Missing 
+Confounder",1.51,0,0,97
+"3. Measurement 
+Error",1.25,-0,0,94
+"4. Modelling 
+Error",2,0,0,94
+"5. Weak Negative 
+Control",1.5,0.01,0,94
+"6. Negative 
+Association",1.5,-0.5,0,0

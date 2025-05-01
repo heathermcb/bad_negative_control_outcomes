@@ -1,0 +1,25 @@
+# Plot betas and confidence interval coverage by simulation sce.
+
+pacman::p_load(tidyverse, here, data.table)
+
+
+
+# Read --------------------------------------------------------------------
+
+ls <- list.files(here("data"), full.names = T)
+
+files <- lapply(FUN = read_rds, ls)
+
+o <- rbindlist(files)
+
+o <- o %>% mutate(case = paste0(model, '_', type))
+
+
+# plot --------------------------------------------------------------------
+
+o %>% 
+  ggplot() + 
+  geom_hline(yintercept = 0) +
+  facet_grid(~model) +
+  geom_boxplot(aes(y = beta, color = type)) + 
+  theme_minimal() 

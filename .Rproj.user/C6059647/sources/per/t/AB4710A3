@@ -1,0 +1,26 @@
+{
+    "id": "AB4710A3",
+    "path": "/Volumes/squirrel-utopia/negative_controls/code/01_run_sim.R",
+    "project_path": "code/01_run_sim.R",
+    "type": "r_source",
+    "hash": "3248992638",
+    "contents": "",
+    "dirty": false,
+    "created": 1744920021415.0,
+    "source_on_save": false,
+    "relative_order": 2,
+    "properties": {
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "312,36",
+        "scrollLine": "299"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1745019867,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1745019867553,
+    "read_only": false,
+    "read_only_alternatives": []
+}
