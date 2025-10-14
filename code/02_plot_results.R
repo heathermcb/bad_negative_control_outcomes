@@ -22,17 +22,17 @@ o <- o %>%
       ),
       labels = c(
         "1. Correct \nCase", 
-        "2. Missing \nConfounder", 
-        "3. Measurement \nError", 
-        "4. Modelling \nError", 
-        "5. Weak Negative \nControl", 
-        "6. Negative \nAssociation"
+        "2. Different \nunobserved \nconfounding \nmechanisms", 
+        "3. Different \nconfounder \nmeasurement \nerror", 
+        "4. Model \nMisspecification", 
+        "5. Weaker \nconfounding in \nnegative \ncontrol outcome", 
+        "6. Unobserved \nconfounder \nnegatively \nassociated \nwith negative \ncontrol outcome"
       )
     ),
     type = factor(
       type,
       levels = c("primary_assoc", "neg_control"),
-      labels = c("Primary Association", "Negative Control")
+      labels = c("Primary Outcome (Y)", "Negative Control (N)")
     )
   )
   
@@ -55,7 +55,7 @@ o %>%
   ) +
   scale_y_continuous(breaks = seq(-3, 3, by = 0.5)) +  # Set y-axis breaks every 0.5
   scale_color_manual(
-    values = c("Primary Association" = "#1f78b4", "Negative Control" = "#33a02c") # Custom cool colors
+    values = c("Primary Outcome (Y)" = "#1f78b4", "Negative Control (N)" = "#33a02c") # Custom cool colors
   ) +
   labs(
     x = NULL,  # Remove x-axis label

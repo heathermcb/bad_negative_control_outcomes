@@ -195,7 +195,7 @@ for (i in 1:100) {
 
 }
 
-results <- results %>% filter(beta>-3 & beta < 3)
+#results <- results %>% filter(beta>-3 & beta < 3)
 
 write_rds(results,
           here(

@@ -1,9 +1,9 @@
 {
     "id": "C57C04BD",
-    "path": "/Volumes/squirrel-utopia/negative_controls/code/02_plot_results.R",
+    "path": "/Volumes/squirrel-utopia/bad_negative_control_outcomes/code/02_plot_results.R",
     "project_path": "code/02_plot_results.R",
     "type": "r_source",
-    "hash": "3612601546",
+    "hash": "3561969315",
     "contents": "",
     "dirty": false,
     "created": 1744919956430.0,
@@ -13,15 +13,15 @@
         "tempName": "Untitled1",
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "16,0",
-        "scrollLine": "0"
+        "cursorPosition": "25,37",
+        "scrollLine": "13"
     },
     "folds": "",
-    "lastKnownWriteTime": 1745010765,
+    "lastKnownWriteTime": 1747152457,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1745010765159,
+    "last_content_update": 1747152457898,
     "read_only": false,
     "read_only_alternatives": []
 }
